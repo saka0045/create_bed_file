@@ -3,3 +3,4 @@ download_alamut_dump.sh
 generate_gene_transcript.py
 .idea/*
 env/*
+GRCh38_unsorted.db

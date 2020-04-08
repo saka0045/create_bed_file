@@ -14,7 +14,7 @@ import os
 import gffutils
 
 # Read existing gffutils db, need to create with create_refseq_gff_db.py if not created already
-db = gffutils.FeatureDB('/dlmp/sandbox/cgslIS/jrwalsh/git/local/parseGFF/tempData/GRCh37_unsorted.db', keep_order=True)
+db = gffutils.FeatureDB('/dlmp/sandbox/cgslIS/Yuta/Illumina/hg38_bed_file/tmp/GRCh38_unsorted.db', keep_order=True)
 
 """
 # This file acts as an "allowed-list" filter. We will only keep transcripts in this list.
@@ -98,7 +98,7 @@ for gene in db.all_features(featuretype='gene'):
                     except:
                         cdsStart = "-1"
                         cdsEnd = "-1"
-                    print('\t'.join(map(str, ["GRCh37.p13", geneName, HGNC, chromosome, geneStart, geneEnd, strand, transcriptName, transcriptStart, transcriptEnd, transcriptCDSStart, transcriptCDSEnd, exonNumber, exonStart, exonEnd, cdsStart, cdsEnd])))
+                    print('\t'.join(map(str, ["GRCh38.p13", geneName, HGNC, chromosome, geneStart, geneEnd, strand, transcriptName, transcriptStart, transcriptEnd, transcriptCDSStart, transcriptCDSEnd, exonNumber, exonStart, exonEnd, cdsStart, cdsEnd])))
                     foundSet.add(transcriptName)
         except:
             continue
