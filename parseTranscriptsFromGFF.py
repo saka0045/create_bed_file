@@ -13,14 +13,15 @@ import HTSeq
 """
     Main
 """
+
+
 def main(args):
     excludedList = parseExcluded(args["exclude"])
     allowedList = parseAllowed(args["allow"])
     parseGFF(args["inputGFF"], excludedList, allowedList)
 
-####
-##      Parse a 1 column file of transcript or gene names
-####
+
+# Parse a 1 column file of transcript or gene names
 def parseExcluded(excludeFile):
     if excludeFile == None:
         return None
@@ -30,9 +31,8 @@ def parseExcluded(excludeFile):
     excludedList = [x.strip() for x in excludedList]
     return excludedList
 
-####
-##      Parse a 1 column file of transcript or gene names
-###
+
+# Parse a 1 column file of transcript or gene names
 def parseAllowed(allowFile):
     if allowFile == None:
         return None
@@ -42,11 +42,10 @@ def parseAllowed(allowFile):
     allowedList = [x.strip() for x in allowedList]
     return allowedList
 
-####
-##      Loop over the GFF and keep any feature that is a transcript.  It seems that for GRCH37/38 gff files, the features labled as
-##      "transcript", "primary_transcript", or anything with "RNA" in the name gives the same results as parsing the fasta file.  
-##      These transcripts thus represent "all" transcripts in refSeq. Some errors are expected, ignore them.
-####
+# Loop over the GFF and keep any feature that is a transcript.  It seems that for GRCH37/38 gff files, the features
+# labled as "transcript", "primary_transcript", or anything with "RNA" in the name gives the same results as parsing
+# the fasta file.
+# These transcripts thus represent "all" transcripts in refSeq. Some errors are expected, ignore them.
 def parseGFF(gffFile, excludedList, allowedList):
     gff_file = HTSeq.GFF_Reader(gffFile, end_included=True)
 
@@ -76,11 +75,13 @@ def parseGFF(gffFile, excludedList, allowedList):
             else:
                 print('\t'.join(map(str, [transcriptID, chrom, start, end, strand, bioType, gene])))
         except:
-            print "error processing ", feature.name
+            print("error processing ", feature.name)
 
 ########################################
 # Parse arguments and kick off program #
 ########################################
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--inputGFF", required=True, help="gff file to parse")
@@ -92,7 +93,7 @@ if __name__ == "__main__":
 
     # Cannot set both -x and -a, complain if user tries
     if args["exclude"] and args["allow"]:
-        print "Usage: cannot specify both an include and exclude list at the same time"
+        print("Usage: cannot specify both an include and exclude list at the same time")
         sys.exit()
 
     # What counts as a transcript?
