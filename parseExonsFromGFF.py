@@ -11,22 +11,21 @@ import re
 ## Installed locally
 import sys
 import os
-sys.path.append(os.environ['HOME'] + 'python/lib/python')
 import gffutils
 
-## Only need to make the DB once, takes a long time
-#db = gffutils.create_db("GRCh37_latest_genomic.gff.gz", dbfn='GRCh37_unsorted.db', id_spec=["ID", "Name"], force=True, keep_order=False, merge_strategy='create_unique', sort_attribute_values=False)
-
-## Read existing gffutils db, created above
+# Read existing gffutils db, need to create with create_refseq_gff_db.py if not created already
 db = gffutils.FeatureDB('/dlmp/sandbox/cgslIS/jrwalsh/git/local/parseGFF/tempData/GRCh37_unsorted.db', keep_order=True)
 
+"""
 # This file acts as an "allowed-list" filter. We will only keep transcripts in this list.
 with open("/dlmp/sandbox/cgslIS/jrwalsh/git/local/parseGFF/tempData/NM_transcripts_in_refseq_not_alamut") as f:
     allowedList = f.readlines()
 allowedList = [x.strip() for x in allowedList]
+"""
 
 # Track how many things in the allowedList we actually find
 foundSet = set()
+
 
 # We are reconstructing the format of the downloaded_alamut.tsv file.  We will create new lines using only transcripts from the allowedList.
 # Format: Assembly        Symbol  HGNC_Id Chromosome      Gene_Start      Gene_End        Strand  Transcript      Transcript_Start        Transcript_End  Transcript_CDS_Start    Transcript_CDS_End      Exon    Exon_Start      Exon_End        Exon_CDS_Start  Exon_CDS_End
@@ -56,7 +55,7 @@ for gene in db.all_features(featuretype='gene'):
                 HGNC = item.split(":")[-1]
     except:
         HGNC = "-"
-    #print geneName, geneStart, geneEnd
+    # print geneName, geneStart, geneEnd
     for transcript in db.children(gene, level=1):
         try:
             transcriptName = transcript['Name'][0]
@@ -64,14 +63,14 @@ for gene in db.all_features(featuretype='gene'):
             transcriptEnd = transcript.end
             transcriptCDSStart = 0
             transcriptCDSEnd = 0
-            #print transcriptName, transcriptStart, transcriptEnd
+            # print transcriptName, transcriptStart, transcriptEnd
             try:
                 transcriptCDSStart = next(db.children(transcript, featuretype='CDS', order_by='start')).start
                 transcriptCDSEnd = next(db.children(transcript, featuretype='CDS', order_by='start', reverse=True)).end
             except:
                 transcriptCDSStart = -1
                 transcriptCDSEnd = -1
-            if True: #transcriptName in allowedList: #filter here if needed
+            if True: # transcriptName in allowedList: #filter here if needed
                 i = 1
                 reverse = False
                 if strand == "-1" or strand == "-":
@@ -81,7 +80,7 @@ for gene in db.all_features(featuretype='gene'):
                     i = i+1
                     exonStart = exon.start
                     exonEnd = exon.end
-                    #print exonNumber, exonStart, exonEnd
+                    # print exonNumber, exonStart, exonEnd
                     cdsStart = "0" # These will be 0 if there is no matching cds or -1 if there are no cds at all
                     cdsEnd = "0"
                     try:
@@ -90,7 +89,9 @@ for gene in db.all_features(featuretype='gene'):
                                 cdsStart = cds.start
                                 cdsEnd = cds.end
                                 break
-                            elif exonStart < cds.start and cds.end < exonEnd: # Edge case where CDS is wholly contained in exactly 1 exon, so neither cds start nor end match exon start/end
+                            # Edge case where CDS is wholly contained in exactly 1 exon, so neither cds start nor end
+                            # match exon start/end
+                            elif exonStart < cds.start and cds.end < exonEnd:
                                 cdsStart = cds.start
                                 cdsEnd = cds.end
                                 break
