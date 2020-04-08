@@ -64,7 +64,7 @@ def parseAlamut(alamutFile, excludedList, allowedList):
                 print(line.rstrip())
         except:
             if len(line) > 1:
-                print "Error in line: ", line
+                print("Error in line: ", line)
 
 ########################################
 # Parse arguments and kick off program #
@@ -83,7 +83,7 @@ if __name__ == "__main__":
     
     # Cannot set both -x and -a, complain if user tries
     if args["exclude"] and args["allow"]:
-        print "Usage: cannot specify both an include and exclude list at the same time"
+        print("Usage: cannot specify both an include and exclude list at the same time")
         sys.exit()
 
     # Call main code

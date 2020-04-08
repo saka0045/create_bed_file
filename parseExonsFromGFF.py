@@ -9,8 +9,9 @@ Usage:  Must have a the gff and refSeq_not_cava files in this directory.  Should
 import re
 
 ## Installed locally
-import sys, os
-sys.path.append (os.environ['HOME'] + 'python/lib/python')
+import sys
+import os
+sys.path.append(os.environ['HOME'] + 'python/lib/python')
 import gffutils
 
 ## Only need to make the DB once, takes a long time
