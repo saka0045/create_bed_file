@@ -4,3 +4,6 @@ generate_gene_transcript.py
 .idea/*
 env/*
 GRCh38_unsorted.db
+refseq38_alamut.tsv
+XY_mapped_transcripts
+complete_refseq38_alamut.tsv
