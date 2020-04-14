@@ -19,14 +19,20 @@ def main():
     parser.add_argument(
         "-s", "--synonymFile", dest="syn_file_path"
     )
+    parser.add_argument(
+        "-o", "--outSynFile", dest="out_syn_file_path",
+        help="Complete file path to the desired output file"
+    )
 
     args = parser.parse_args()
 
     tsv_file_path = os.path.abspath(args.input_tsv_file_path)
     syn_file_path = os.path.abspath(args.syn_file_path)
+    out_syn_file_path = os.path.abspath(args.out_syn_file_path)
 
     tsv_file = open(tsv_file_path, "r")
     syn_file = open(syn_file_path, "r")
+    out_syn_file = open(out_syn_file_path, "w")
 
     # Go through the list of transcripts and store them in a list
     syn_file_transcript_list = []
@@ -58,12 +64,19 @@ def main():
     print("Number of transcripts in the transcript file is " + str(len(syn_file_transcript_list)))
     print("Number of transcripts in the tsv file is " + str(len(tsv_file_dict)))
 
-    for transcript in syn_file_transcript_list:
-        if transcript not in tsv_file_dict.keys():
-            print(transcript)
+    if len(syn_file_transcript_list) != len(tsv_file_dict):
+        print("Transcripts in syn file not in tsv file: ")
+        for transcript in syn_file_transcript_list:
+            if transcript not in tsv_file_dict.keys():
+                print(transcript)
+
+    # Create the out syn file
+    for tsv_transcript, tsv_gene in tsv_file_dict.items():
+        out_syn_file.write(tsv_gene + "\t" + tsv_transcript + "\n")
 
     tsv_file.close()
     syn_file.close()
+    out_syn_file.close()
 
 
 if __name__ == "__main__":
