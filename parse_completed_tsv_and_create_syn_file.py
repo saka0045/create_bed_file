@@ -17,7 +17,7 @@ def main():
         "-i", "--inputTsvFile", dest="input_tsv_file_path"
     )
     parser.add_argument(
-        "-s", "--synonymFile", dest="syn_file_path"
+        "-c", "--candidateTranscriptFile", dest="candidate_transcript_file_path"
     )
     parser.add_argument(
         "-o", "--outSynFile", dest="out_syn_file_path",
@@ -27,22 +27,22 @@ def main():
     args = parser.parse_args()
 
     tsv_file_path = os.path.abspath(args.input_tsv_file_path)
-    syn_file_path = os.path.abspath(args.syn_file_path)
+    candidate_transcript_file_path = os.path.abspath(args.candidate_transcript_file_path)
     out_syn_file_path = os.path.abspath(args.out_syn_file_path)
 
     tsv_file = open(tsv_file_path, "r")
-    syn_file = open(syn_file_path, "r")
+    candidate_transcript_file = open(candidate_transcript_file_path, "r")
     out_syn_file = open(out_syn_file_path, "w")
 
     # Go through the list of transcripts and store them in a list
-    syn_file_transcript_list = []
-    for syn_transcript in syn_file:
-        syn_transcript = syn_transcript.rstrip()
-        if syn_transcript not in syn_file_transcript_list:
-            syn_file_transcript_list.append(syn_transcript)
+    candidate_transcript_list = []
+    for candidate_transcript in candidate_transcript_file:
+        candidate_transcript = candidate_transcript.rstrip()
+        if candidate_transcript not in candidate_transcript_list:
+            candidate_transcript_list.append(candidate_transcript)
         # If duplicate transcripts are found in the list of transcripts, abort the script
         else:
-            sys.exit("Found duplicate entry for " + syn_transcript)
+            sys.exit("Found duplicate entry for " + candidate_transcript)
 
     # Parse through the Alamut style tsv file
     # Ignore header line
@@ -61,12 +61,12 @@ def main():
         if tsv_transcript not in tsv_file_dict.keys():
             tsv_file_dict[tsv_transcript] = tsv_gene
 
-    print("Number of transcripts in the transcript file is " + str(len(syn_file_transcript_list)))
+    print("Number of transcripts in the candidate transcript file is " + str(len(candidate_transcript_list)))
     print("Number of transcripts in the tsv file is " + str(len(tsv_file_dict)))
 
-    if len(syn_file_transcript_list) != len(tsv_file_dict):
-        print("Transcripts in syn file not in tsv file: ")
-        for transcript in syn_file_transcript_list:
+    if len(candidate_transcript_list) != len(tsv_file_dict):
+        print("Transcripts in candidate transcript file not in tsv file: ")
+        for transcript in candidate_transcript_list:
             if transcript not in tsv_file_dict.keys():
                 print(transcript)
 
@@ -75,7 +75,7 @@ def main():
         out_syn_file.write(tsv_gene + "\t" + tsv_transcript + "\n")
 
     tsv_file.close()
-    syn_file.close()
+    candidate_transcript_file.close()
     out_syn_file.close()
 
 
