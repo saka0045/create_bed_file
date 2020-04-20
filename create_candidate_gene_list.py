@@ -8,6 +8,7 @@ If duplicate transcript numbers exist in two lists, it will chose the transcript
 refseq_file = open("/Users/m006703/test/create_bed_file_test_files/refseq_unique_sorted_transcripts", "r")
 alamut_file = open("/Users/m006703/test/create_bed_file_test_files/alamut_uniq_NM_transcripts", "r")
 candidate_transcript_file = open("/Users/m006703/test/create_bed_file_test_files/candidate_transcripts", "w")
+alamut_only_transcript_file = open("/Users/m006703/test/create_bed_file_test_files/alamut_only_transcripts", "w")
 
 
 def main():
@@ -24,36 +25,51 @@ def main():
     removed_transcripts = {}
 
     # The RefSeq dictionary must be pruned first in order to keep the RefSeq transcript numbers!!!
-    prune_transcript_dictionary(refseq_transcripts, removed_transcripts, candidate_transcripts)
+    prune_transcript_dictionary(refseq_transcripts, removed_transcripts, candidate_transcripts, "RefSeq")
     count_transcripts(candidate_transcripts, "candidate transcripts after pruning RefSeq")
     count_transcripts(removed_transcripts, "removed transcripts after pruning RefSeq")
 
-    prune_transcript_dictionary(alamut_transcript, removed_transcripts, candidate_transcripts)
+    alamut_only_transcripts = prune_transcript_dictionary(alamut_transcript, removed_transcripts,
+                                                          candidate_transcripts, "Alamut")
     count_transcripts(candidate_transcripts, "candidate transcripts after pruning Alamut")
     count_transcripts(removed_transcripts, "removed transcripts after pruning Alamut")
+    count_transcripts(alamut_only_transcripts, "Alamut only transcripts")
 
-    for transcript_number, transcript_version in candidate_transcripts.items():
-        candidate_transcript_file.write(transcript_number + "." + "".join(transcript_version) + "\n")
+    write_transcripts_to_result_file(candidate_transcripts, candidate_transcript_file)
+    write_transcripts_to_result_file(alamut_only_transcripts, alamut_only_transcript_file)
 
     refseq_file.close()
     alamut_file.close()
     candidate_transcript_file.close()
+    alamut_only_transcript_file.close()
 
 
-def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_transcripts):
+def write_transcripts_to_result_file(transcript_dict, transcript_file):
+    for transcript_number, transcript_version in transcript_dict.items():
+        for version in transcript_version:
+            transcript_file.write(transcript_number + "." + version + "\n")
+
+
+def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_transcripts, dict_string):
     """
     Function to keep the most recent version and transcript from the first transcript dictionary
     If duplicate transcript number is present in the second dictionary, the transcript number and versions will be
     sent to the removed_transcript dict
     :param transcript_dict:
     :param removed_transcripts:
+    :param candidate_transcripts:
+    :param dict_string:
     :return:
     """
+    if dict_string == "Alamut":
+        alamut_only_transcripts = {}
     for transcript_number, transcript_version_list in transcript_dict.items():
         # Add the transcript number to the candidate transcript dict if it is not present
         if len(transcript_version_list) == 1:
             if transcript_number not in candidate_transcripts.keys():
                 candidate_transcripts[transcript_number] = transcript_version_list
+                if dict_string == "Alamut":
+                    alamut_only_transcripts[transcript_number] = transcript_version_list
             elif transcript_number in candidate_transcripts.keys():
                 if transcript_number not in removed_transcripts:
                     removed_transcripts[transcript_number] = transcript_version_list
@@ -63,13 +79,17 @@ def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_
         if len(transcript_version_list) >= 2:
             most_recent_version_number = keep_most_recent_version(removed_transcripts, transcript_number,
                                                                   transcript_version_list)
-            # If the transcript number is not in the candidate transcripts, add the most recent version
+            # If the transcript number is not in the candidate transcripts, add all version
             if transcript_number not in candidate_transcripts.keys():
-                candidate_transcripts[transcript_number] = [most_recent_version_number]
+                candidate_transcripts[transcript_number] = transcript_version_list
+                if dict_string == "Alamut":
+                    alamut_only_transcripts[transcript_number] = transcript_version_list
             # If the transcript number already exists in candidate transcript,
             # add the most recent version to the already existing transcript number in removed transcripts
             else:
                 removed_transcripts[transcript_number].append(most_recent_version_number)
+    if dict_string == "Alamut":
+        return alamut_only_transcripts
 
 
 def keep_most_recent_version(transcript_dict, transcript_number, transcript_version_list):
