@@ -1,7 +1,13 @@
 #!/usr/bin/python3
 
+"""
+This script creates the candidate gene list (os.syn) from list of RefSeq and Alamut transcripts
+If duplicate transcript numbers exist in two lists, it will chose the transcript and transcript version from Refseq
+"""
+
 refseq_file = open("/Users/m006703/test/create_bed_file_test_files/refseq_unique_sorted_transcripts", "r")
 alamut_file = open("/Users/m006703/test/create_bed_file_test_files/alamut_uniq_NM_transcripts", "r")
+candidate_transcript_file = open("/Users/m006703/test/create_bed_file_test_files/candidate_transcripts", "w")
 
 
 def main():
@@ -11,47 +17,79 @@ def main():
     alamut_transcript = {}
     extract_transcripts(alamut_transcript, alamut_file, "Alamut")
 
-    refseq_total_transcripts, refseq_unique_transcripts = count_transcripts(refseq_transcripts)
-    alamut_total_transcripts, alamut_unique_transcript = count_transcripts(alamut_transcript)
+    count_transcripts(refseq_transcripts, "RefSeq")
+    count_transcripts(alamut_transcript, "Alamut")
 
-    print("Number of total transcripts in RefSeq file: " + str(refseq_total_transcripts))
-    print("Number of unique transcript in RefSeq file: " + str(refseq_unique_transcripts))
-    print("Number of total transcripts in Alamut file: " + str(alamut_total_transcripts))
-    print("Number of unique transcripts in Alamut file: " + str(alamut_unique_transcript))
+    candidate_transcripts = {}
+    removed_transcripts = {}
 
-    only_in_alamut = []
-    for transcript in alamut_transcript:
-        if transcript not in refseq_transcripts:
-            only_in_alamut.append(transcript)
-    print("Number of NM transcripts only in Alamut file: " + str(len(only_in_alamut)))
+    # The RefSeq dictionary must be pruned first in order to keep the RefSeq transcript numbers!!!
+    prune_transcript_dictionary(refseq_transcripts, removed_transcripts, candidate_transcripts)
+    count_transcripts(candidate_transcripts, "candidate transcripts after pruning RefSeq")
+    count_transcripts(removed_transcripts, "removed transcripts after pruning RefSeq")
 
-    refseq_nm_transcripts_number_only = []
-    get_number_from_transcript(refseq_transcripts, refseq_nm_transcripts_number_only)
+    prune_transcript_dictionary(alamut_transcript, removed_transcripts, candidate_transcripts)
+    count_transcripts(candidate_transcripts, "candidate transcripts after pruning Alamut")
+    count_transcripts(removed_transcripts, "removed transcripts after pruning Alamut")
 
-    only_in_alamut_nm_transcript_number_only = []
-    get_number_from_transcript(only_in_alamut, only_in_alamut_nm_transcript_number_only)
-
-    different_version_transcripts = []
-    completely_not_in_refseq = []
-    for transcript_number in only_in_alamut_nm_transcript_number_only:
-        if transcript_number in refseq_nm_transcripts_number_only:
-            different_version_transcripts.append(transcript_number)
-        else:
-            completely_not_in_refseq.append(transcript_number)
-
-    print("Number of shared transcripts with different versions: " + str(len(different_version_transcripts)))
-    print("Number of transcripts that are not represented in RefSeq at all: " + str(len(completely_not_in_refseq)))
+    for transcript_number, transcript_version in candidate_transcripts.items():
+        candidate_transcript_file.write(transcript_number + "." + "".join(transcript_version) + "\n")
 
     refseq_file.close()
     alamut_file.close()
+    candidate_transcript_file.close()
 
 
-def count_transcripts(transcript_dict):
+def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_transcripts):
+    """
+    Function to keep the most recent version and transcript from the first transcript dictionary
+    If duplicate transcript number is present in the second dictionary, the transcript number and versions will be
+    sent to the removed_transcript dict
+    :param transcript_dict:
+    :param removed_transcripts:
+    :return:
+    """
+    for transcript_number, transcript_version_list in transcript_dict.items():
+        # Add the transcript number to the candidate transcript dict if it is not present
+        if len(transcript_version_list) == 1:
+            if transcript_number not in candidate_transcripts.keys():
+                candidate_transcripts[transcript_number] = transcript_version_list
+            elif transcript_number in candidate_transcripts.keys():
+                if transcript_number not in removed_transcripts:
+                    removed_transcripts[transcript_number] = transcript_version_list
+                else:
+                    removed_transcripts[transcript_number] += transcript_version_list
+        # If transcript contains multiple version numbers, figure out the most recent version number
+        if len(transcript_version_list) >= 2:
+            most_recent_version_number = keep_most_recent_version(removed_transcripts, transcript_number,
+                                                                  transcript_version_list)
+            # If the transcript number is not in the candidate transcripts, add the most recent version
+            if transcript_number not in candidate_transcripts.keys():
+                candidate_transcripts[transcript_number] = [most_recent_version_number]
+            # If the transcript number already exists in candidate transcript,
+            # add the most recent version to the already existing transcript number in removed transcripts
+            else:
+                removed_transcripts[transcript_number].append(most_recent_version_number)
+
+
+def keep_most_recent_version(transcript_dict, transcript_number, transcript_version_list):
+    most_recent_version_number = max(transcript_version_list)
+    for version_number in transcript_version_list:
+        if version_number != most_recent_version_number:
+            if transcript_number not in transcript_dict:
+                transcript_dict[transcript_number] = [version_number]
+            elif transcript_number in transcript_dict:
+                transcript_dict[transcript_number].append(version_number)
+    return most_recent_version_number
+
+
+def count_transcripts(transcript_dict, file_string):
     total_refseq_transcript = 0
     for transcript_number, transcript_version in transcript_dict.items():
         total_refseq_transcript += len(transcript_dict[transcript_number])
     unique_transcript_number = len(transcript_dict.keys())
-    return total_refseq_transcript, unique_transcript_number
+    print("Number of total transcripts in " + file_string + " " + str(total_refseq_transcript))
+    print("Number of unique transcripts in " + file_string + " " + str(unique_transcript_number))
 
 
 def get_number_from_transcript(transcript_list, transcript_number_list):
