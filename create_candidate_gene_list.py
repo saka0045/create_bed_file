@@ -91,7 +91,8 @@ def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_
         if len(transcript_version_list) == 1:
             if transcript_number not in candidate_transcripts.keys():
                 candidate_transcripts[transcript_number] = transcript_version_list
-                if dict_string == "Alamut":
+                # If analyzing alamut transcripts and it is a NM transcript, add it to alamut_only_dict as well
+                if dict_string == "Alamut" and transcript_number.startswith("NM_"):
                     alamut_only_transcripts[transcript_number] = transcript_version_list
             elif transcript_number in candidate_transcripts.keys():
                 if transcript_number not in removed_transcripts:
@@ -105,7 +106,8 @@ def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_
             # If the transcript number is not in the candidate transcripts, add all version
             if transcript_number not in candidate_transcripts.keys():
                 candidate_transcripts[transcript_number] = transcript_version_list
-                if dict_string == "Alamut":
+                # If analyzing alamut transcripts and it is a NM transcript, add it to alamut_only_dict as well
+                if dict_string == "Alamut" and transcript_number.startswith("NM_"):
                     alamut_only_transcripts[transcript_number] = transcript_version_list
             # If the transcript number already exists in candidate transcript,
             # add the most recent version to the already existing transcript number in removed transcripts
@@ -152,8 +154,8 @@ def extract_transcripts(transcript_dict, transcript_file, file_string):
         elif transcript_number in transcript_dict.keys():
             if transcript_version not in transcript_dict[transcript_number]:
                 transcript_dict[transcript_number].append(transcript_version)
+            # If transcript number and version is already in the dictionary, skip and continue
             else:
-                print(transcript_number + "." + transcript_version + " already in dictionary")
                 continue
 
 
