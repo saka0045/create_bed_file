@@ -33,7 +33,7 @@ def main():
     refseq_file = open(refseq_file_path, "r")
     alamut_file = open(alamut_file_path, "r")
     candidate_transcript_file = open(output_dir + "/candidate_transcripts", "w")
-    alamut_only_transcript_file = open(output_dir + "/alamut_only_transcripts", "w")
+    alamut_only_nm_transcript_file = open(output_dir + "/alamut_only_NM_transcripts", "w")
 
     refseq_transcripts = {}
     extract_transcripts(refseq_transcripts, refseq_file, "RefSeq")
@@ -59,12 +59,12 @@ def main():
     count_transcripts(alamut_only_transcripts, "Alamut only transcripts")
 
     write_transcripts_to_result_file(candidate_transcripts, candidate_transcript_file)
-    write_transcripts_to_result_file(alamut_only_transcripts, alamut_only_transcript_file)
+    write_transcripts_to_result_file(alamut_only_transcripts, alamut_only_nm_transcript_file)
 
     refseq_file.close()
     alamut_file.close()
     candidate_transcript_file.close()
-    alamut_only_transcript_file.close()
+    alamut_only_nm_transcript_file.close()
 
 
 def write_transcripts_to_result_file(transcript_dict, transcript_file):
@@ -85,7 +85,7 @@ def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_
     :return:
     """
     if dict_string == "Alamut":
-        alamut_only_transcripts = {}
+        alamut_only_nm_transcripts = {}
     for transcript_number, transcript_version_list in transcript_dict.items():
         # Add the transcript number to the candidate transcript dict if it is not present
         if len(transcript_version_list) == 1:
@@ -93,7 +93,7 @@ def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_
                 candidate_transcripts[transcript_number] = transcript_version_list
                 # If analyzing alamut transcripts and it is a NM transcript, add it to alamut_only_dict as well
                 if dict_string == "Alamut" and transcript_number.startswith("NM_"):
-                    alamut_only_transcripts[transcript_number] = transcript_version_list
+                    alamut_only_nm_transcripts[transcript_number] = transcript_version_list
             elif transcript_number in candidate_transcripts.keys():
                 if transcript_number not in removed_transcripts:
                     removed_transcripts[transcript_number] = transcript_version_list
@@ -108,13 +108,13 @@ def prune_transcript_dictionary(transcript_dict, removed_transcripts, candidate_
                 candidate_transcripts[transcript_number] = transcript_version_list
                 # If analyzing alamut transcripts and it is a NM transcript, add it to alamut_only_dict as well
                 if dict_string == "Alamut" and transcript_number.startswith("NM_"):
-                    alamut_only_transcripts[transcript_number] = transcript_version_list
+                    alamut_only_nm_transcripts[transcript_number] = transcript_version_list
             # If the transcript number already exists in candidate transcript,
             # add the most recent version to the already existing transcript number in removed transcripts
             else:
                 removed_transcripts[transcript_number].append(most_recent_version_number)
     if dict_string == "Alamut":
-        return alamut_only_transcripts
+        return alamut_only_nm_transcripts
 
 
 def keep_most_recent_version(transcript_dict, transcript_number, transcript_version_list):
