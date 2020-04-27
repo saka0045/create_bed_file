@@ -5,13 +5,36 @@ This script creates the candidate gene list (os.syn) from list of RefSeq and Ala
 If duplicate transcript numbers exist in two lists, it will chose the transcript and transcript version from Refseq
 """
 
-refseq_file = open("/Users/m006703/test/create_bed_file_test_files/refseq_unique_sorted_transcripts", "r")
-alamut_file = open("/Users/m006703/test/create_bed_file_test_files/alamut_uniq_NM_transcripts", "r")
-candidate_transcript_file = open("/Users/m006703/test/create_bed_file_test_files/candidate_transcripts", "w")
-alamut_only_transcript_file = open("/Users/m006703/test/create_bed_file_test_files/alamut_only_transcripts", "w")
+import argparse
+import os
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "-r", "--refseqFile", dest="refseq_file_path", required=True,
+        help="Full path to the refseq transcripts"
+    )
+    parser.add_argument(
+        "-a", "--alamutFile", dest="alamut_file_path", required=True,
+        help="Full path to the alamut transcripts"
+    )
+    parser.add_argument(
+        "-o", "--outputDir", dest="output_dir", required=True,
+        help="Full path to save the candidate transcript file and alamut only transcript file"
+    )
+
+    args = parser.parse_args()
+
+    refseq_file_path = os.path.abspath(args.refseq_file_path)
+    alamut_file_path = os.path.abspath(args.alamut_file_path)
+    output_dir = os.path.abspath(args.output_dir)
+
+    refseq_file = open(refseq_file_path, "r")
+    alamut_file = open(alamut_file_path, "r")
+    candidate_transcript_file = open(output_dir + "/candidate_transcripts", "w")
+    alamut_only_transcript_file = open(output_dir + "/alamut_only_transcripts", "w")
+
     refseq_transcripts = {}
     extract_transcripts(refseq_transcripts, refseq_file, "RefSeq")
 
